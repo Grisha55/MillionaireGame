@@ -15,32 +15,53 @@ class MainMenuVC: UIViewController {
     private let gameButton = UIButton()
     private let resultsButton = UIButton()
     private let stackWithButtons = UIStackView()
+    private var segmentedControl: UISegmentedControl!
+    private let addNewQuestionButton = UIButton()
     private var trueAnswers = 0.0
     private var allQuestions = 10.0
+    private var gameStatus: QuestionStrategy = ConsistentlyStrategy()
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         // Поцент от общего
         
-        let procent = Int((trueAnswers / allQuestions) * 100)
+        let procent = Int(trueAnswers) * 10
         print("Ваш результат \(procent) %")
+        
+        RecordsCaretaker().save(questions: Game.shared.questions)
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
         view.backgroundColor = .white
-        
         configureNavigationBar()
         configureGameButton()
         configureResultsButton()
         configureStackWithButtons()
         configureTitleLabel()
+        configureAddNewQuestionButton()
         
-        self.setAllConstraints(titleLabel: titleLabel, stackWithButtons: stackWithButtons)
+        self.setAllConstraints(titleLabel: titleLabel, stackWithButtons: stackWithButtons, addNewQuestionButton: addNewQuestionButton)
     }
 
     // MARK: - Methods
+    
+    private func configureAddNewQuestionButton() {
+        view.addSubview(addNewQuestionButton)
+        addNewQuestionButton.setTitle("Добавить новый вопрос", for: .normal)
+        addNewQuestionButton.setTitleColor(.white, for: .normal)
+        addNewQuestionButton.addTarget(self, action: #selector(addNewQuestionButtonDidPressed), for: .touchUpInside)
+        addNewQuestionButton.backgroundColor = .blue
+        addNewQuestionButton.layer.cornerRadius = 10
+        addNewQuestionButton.layer.borderWidth = 2
+        addNewQuestionButton.layer.borderColor = UIColor.white.cgColor
+        addNewQuestionButton.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
+    }
+    
+    @objc private func addNewQuestionButtonDidPressed() {
+        let newQuestionVC = QuestionVC()
+        navigationController?.pushViewController(newQuestionVC, animated: true)
+    }
     
     private func configureStackWithButtons() {
         view.addSubview(stackWithButtons)
@@ -84,6 +105,13 @@ class MainMenuVC: UIViewController {
     private func configureNavigationBar() {
         title = "Menu"
         navigationController?.navigationBar.prefersLargeTitles = true
+        let rightBarButton = UIBarButtonItem(image: UIImage(systemName: "gearshape.fill"), style: .plain, target: self, action: #selector(settingsButtonDidPressed))
+        navigationItem.rightBarButtonItem = rightBarButton
+    }
+    
+    @objc private func settingsButtonDidPressed() {
+        let settingsVC = SettingsVC()
+        navigationController?.pushViewController(settingsVC, animated: true)
     }
     
 }

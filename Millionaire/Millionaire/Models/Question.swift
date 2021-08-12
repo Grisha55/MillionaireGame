@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Question {
+struct Question: Hashable, Codable {
     let question: String
     let optionsOfAnswer: [String]
     let trueAnswer: String

@@ -9,9 +9,18 @@ import UIKit
 
 extension MainMenuVC {
     
-    func setAllConstraints(titleLabel: UILabel, stackWithButtons: UIStackView) {
+    func setAllConstraints(titleLabel: UILabel, stackWithButtons: UIStackView, addNewQuestionButton: UIButton) {
         self.setTitleLabelConstraints(titleLabel: titleLabel)
         self.setStackWithButtonsConstraints(stackWithButtons: stackWithButtons)
+        self.setAddNewQuestionButtonConstraints(addNewQuestionButton: addNewQuestionButton, stackWithButtons: stackWithButtons)
+    }
+    
+    private func setAddNewQuestionButtonConstraints(addNewQuestionButton: UIButton, stackWithButtons: UIStackView) {
+        addNewQuestionButton.translatesAutoresizingMaskIntoConstraints = false
+        addNewQuestionButton.topAnchor.constraint(equalTo: stackWithButtons.bottomAnchor, constant: 120).isActive = true
+        addNewQuestionButton.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        addNewQuestionButton.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        addNewQuestionButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 60).isActive = true
     }
     
     private func setTitleLabelConstraints(titleLabel: UILabel) {

@@ -15,18 +15,8 @@ class GameVC: UIViewController {
 
     // MARK: - Properties
     
-    private let questions = [
-        Question(question: "Какую фамилию носил главный герой поэмы А.Твардовского?", optionsOfAnswer: ["Болотников", "Теркин", "Воронов", "Иванов"], trueAnswer: "Теркин"),
-        Question(question: "В песне какого барда есть строчка Лыжи у печки стоят... ?", optionsOfAnswer: ["Юрий Визбор", "Булат Окуджава", "Максим Галкин", "Монатик"], trueAnswer: "Юрий Визбор"),
-        Question(question: "Какой советский космонавт получил первую космическую почту?", optionsOfAnswer: ["Юрий Гагарин", "Иван Семенов", "Сергей Скворцов", "Владимир Шаталов"], trueAnswer: "Владимир Шаталов"),
-        Question(question: "Как называют звезду, которая указала волхвам место рождения Христа?", optionsOfAnswer: ["Полярная", "Вифлеемская", "Солнце", "Аравийская"], trueAnswer: "Вифлеемская"),
-        Question(question: "Где, если верить пословице, любопытной Варваре нос оторвали?", optionsOfAnswer: ["На базаре", "На пире", "На реке", "В гостях"], trueAnswer: "На базаре"),
-        Question(question: "Кто автор проекта радиобашни на Шаболовке?", optionsOfAnswer: ["Николай Ермолин", "Андрей Шахов", "Владимир Шухов", "Борис Федоров"], trueAnswer: "Владимир Шухов"),
-        Question(question: "Какой знак восточного гороскопа следует за знаком Дракона?", optionsOfAnswer: ["Коза", "Рыбы", "Ворон", "Змея"], trueAnswer: "Змея"),
-        Question(question: "Где проходила первая Главная ёлка Страны Советов?", optionsOfAnswer: ["В Доме союзов", "В дворце пионеров", "Нигде", "В Москве"], trueAnswer: "В Доме союзов"),
-        Question(question: "Какие семьи, по мнению Л. Н. Толстого, похожи друг на друга?", optionsOfAnswer: ["Здоровые", "Здравые", "Плохие", "Счастливые"], trueAnswer: "Счастливые"),
-        Question(question: "К какому семейству птиц относится снегирь?", optionsOfAnswer: ["Полевые", "Вьюрковые", "Птичьи", "Ператые"], trueAnswer: "Вьюрковые"),
-    ]
+    private let resultLabel = UILabel()
+    private var result = Observable<String>("0")
     private let titleLabel = UILabel()
     private var stackWithButtons = UIStackView()
     private var numberOfQuestion = 0
@@ -37,18 +27,44 @@ class GameVC: UIViewController {
 
         view.backgroundColor = .white
         view.addSubview(stackWithButtons)
-        
+        checkGameState()
+        Game.shared.questions = RecordsCaretaker().retrieveRecords()
         configureStackWithButton()
         configureTitleLabel()
+        configureResultLabel()
         
-        self.setAllConstraints(titleLabel: titleLabel, stackWithButtons: stackWithButtons)
+        result.addObserver(self, options: [.new, .initial]) { [weak self] result, _ in
+            self?.resultLabel.text = "Ваш результат: \(result) %"
+        }
+        
+        self.setAllConstraints(titleLabel: titleLabel, stackWithButtons: stackWithButtons, resultLabel: resultLabel)
     }
     
     // MARK: - Methods
     
+    private func configureResultLabel() {
+        view.addSubview(resultLabel)
+        resultLabel.textAlignment = .center
+        resultLabel.font = resultLabel.font.withSize(22)
+    }
+    
+    private func checkGameState() {
+        let consistent = ConsistentlyStrategy()
+        let random = RandomStrategy()
+        
+        if Game.shared.questionsType is ConsistentlyStrategy {
+            Game.shared.questions = consistent.configureQuestions(questions: Game.shared.questions)
+            print(Game.shared.questions.count)
+        } else if Game.shared.questionsType is RandomStrategy {
+            Game.shared.questions = random.configureQuestions(questions: Game.shared.questions)
+        } else {
+            return 
+        }
+    }
+    
     private func configureTitleLabel() {
         view.addSubview(titleLabel)
-        titleLabel.text = questions[0].question
+        titleLabel.text = Game.shared.questions[0].question
         titleLabel.numberOfLines = 0
         titleLabel.textColor = .black
         titleLabel.textAlignment = .center
@@ -65,27 +81,29 @@ class GameVC: UIViewController {
         stackWithButtons.alignment = .center
         stackWithButtons.distribution = .fillEqually
         stackWithButtons.spacing = 10
-        
-        for title in questions[numberOfQuestion].optionsOfAnswer {
-            let button = UIButton()
-            button.setTitle(title, for: .normal)
-            button.setTitleColor(.black, for: .normal)
-            button.titleLabel?.font = UIFont.systemFont(ofSize: 25)
-            button.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
+        if numberOfQuestion < Game.shared.questions.count {
             
-            stackWithButtons.addArrangedSubview(button)
-            
+            for title in Game.shared.questions[numberOfQuestion].optionsOfAnswer {
+                let button = UIButton()
+                button.setTitle(title, for: .normal)
+                button.setTitleColor(.black, for: .normal)
+                button.titleLabel?.font = UIFont.systemFont(ofSize: 25)
+                button.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
+                
+                stackWithButtons.addArrangedSubview(button)
+            }
         }
         
     }
     
     @objc private func buttonTapped(_ button: UIButton) {
-        if button.titleLabel?.text == questions[numberOfQuestion].trueAnswer && numberOfQuestion <= 8 {
+        if button.titleLabel?.text == Game.shared.questions[numberOfQuestion].trueAnswer && numberOfQuestion < Game.shared.questions.count - 1 {
             numberOfQuestion += 1
-            titleLabel.text = questions[numberOfQuestion].question
+            result.value = "\(numberOfQuestion * 10)"
+            titleLabel.text = Game.shared.questions[numberOfQuestion].question
             self.configureStackWithButton()
         } else {
-            gameVCDelegate?.gameInformation(trueAnswers: Double(numberOfQuestion + 1), allQuestions: 10)
+            gameVCDelegate?.gameInformation(trueAnswers: Double(numberOfQuestion), allQuestions: Double(Game.shared.questions.count))
             navigationController?.popViewController(animated: true)
         }
         

@@ -7,10 +7,15 @@
 
 import UIKit
 
-class SettingsVC: UIViewController {
+protocol SettingsViewProtocol: AnyObject {
+    func segmentedStateDidChange()
+}
+
+class SettingsVC: UIViewController, SettingsViewProtocol {
 
     // MARK: - Properties
     
+    private var settingsPresenter: SettingsPresenterProtocol!
     private let typeLabel = UILabel()
     private var segmentedControl: UISegmentedControl!
     private let stackView = UIStackView()
@@ -19,7 +24,7 @@ class SettingsVC: UIViewController {
         super.viewDidLoad()
 
         view.backgroundColor = .white
-        
+        settingsPresenter = SettingsPresenter(view: self)
         configureNavigationBar()
         configureSegmentedControl()
         configureTypeLabel()
@@ -55,15 +60,8 @@ class SettingsVC: UIViewController {
         segmentedControl.addTarget(self, action: #selector(segmentedStateDidChange), for: .allEvents)
     }
     
-    @objc private func segmentedStateDidChange() {
-        switch segmentedControl.selectedSegmentIndex {
-        case 0:
-            Game.shared.questionsType = ConsistentlyStrategy()
-        case 1:
-            Game.shared.questionsType = RandomStrategy()
-        default:
-            Game.shared.questionsType = ConsistentlyStrategy()
-        }
+    @objc internal func segmentedStateDidChange() {
+        self.settingsPresenter.segmentedChanged(segmentedControl: segmentedControl)
     }
     
     private func configureNavigationBar() {

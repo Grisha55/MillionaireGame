@@ -95,16 +95,6 @@ extension QuestionVC: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: QuestionCell.questionCell, for: indexPath) as? QuestionCell else { return UITableViewCell() }
-        
-        
-        
-//        QuestionBuilder().setQuestion(textFields[0].text ?? "Not found")
-//        QuestionBuilder().setTrueAnswer(textFields[1].text ?? "Not found")
-//        QuestionBuilder().setOptionsOfAnswer(textFields[2].text ?? "Not found")
-//        QuestionBuilder().setOptionsOfAnswer(textFields[3].text ?? "Not found")
-//        QuestionBuilder().setOptionsOfAnswer(textFields[4].text ?? "Not found")
-//        QuestionBuilder().setOptionsOfAnswer(textFields[5].text ?? "Not found")
-        
         return cell
     }
 }
